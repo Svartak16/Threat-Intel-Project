@@ -43,9 +43,9 @@ def run_enforcement():
         # Double-check with VirusTotal
         if check_virustotal(ip):
             if block_in_kali(ip):
-                 new_rule_id = f"RULE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6]}"
+                new_rule_id = f"RULE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6]}"
                 
-                 db.indicators.update_one(
+                db.indicators.update_one(
                     {"_id": t["_id"]}, 
                     {"$set": {
                         "status": "blocked",
