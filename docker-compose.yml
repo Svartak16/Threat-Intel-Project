@@ -78,5 +78,5 @@ volumes:
 #   2. Create pattern: tip-indicators-*
 #   3. Time field: last_seen
 #   4. Also create: tip-alerts, tip-audit-logs
-# ─────────────────────────────────────────────────────────────
+
 
