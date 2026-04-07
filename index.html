@@ -3,132 +3,669 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InfoTact | Threat Intelligence Platform</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>TIP | Threat Intelligence Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0d1117;
-            --glass-bg: rgba(23, 28, 36, 0.8);
-            --neon-blue: #58a6ff;
-            --neon-red: #f85149;
-            --neon-green: #3fb950;
+            --bg:         #080c10;
+            --surface:    #0d1117;
+            --surface2:   #161b22;
+            --border:     #21262d;
+            --blue:       #58a6ff;
+            --red:        #f85149;
+            --green:      #3fb950;
+            --yellow:     #e3b341;
+            --purple:     #bc8cff;
+            --muted:      #8b949e;
+            --text:       #c9d1d9;
+            --mono:       'Share Tech Mono', monospace;
+            --sans:       'Rajdhani', sans-serif;
         }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: #c9d1d9; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 15px;
+            min-height: 100vh;
         }
 
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
         }
 
-        .stat-value { font-size: 2.5rem; font-weight: bold; }
-        .text-neon-blue { color: var(--neon-blue); }
-        .text-neon-red { color: var(--neon-red); }
-        .text-neon-green { color: var(--neon-green); }
-
-        .table { color: #c9d1d9; border-color: #30363d; }
-        .table thead th { border-bottom: 2px solid #30363d; color: #8b949e; }
-        
-        .badge-source {
-            background: rgba(88, 166, 255, 0.1);
-            border: 1px solid var(--neon-blue);
-            color: var(--neon-blue);
-            padding: 5px 10px;
+        /* ── Layout ── */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .status-pill {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .logo {
+            font-family: var(--mono);
+            font-size: 18px;
+            color: var(--blue);
+            letter-spacing: 2px;
+        }
+        .logo span { color: var(--red); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .status-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            display: inline-block;
+            margin-right: 6px;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        .main { max-width: 1400px; margin: 0 auto; padding: 28px 32px; }
+
+        /* ── Stat Cards ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .stat-card:hover { border-color: var(--blue); }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+        }
+        .stat-card.blue::before   { background: var(--blue); }
+        .stat-card.red::before    { background: var(--red); }
+        .stat-card.green::before  { background: var(--green); }
+        .stat-card.yellow::before { background: var(--yellow); }
+        .stat-card.purple::before { background: var(--purple); }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-family: var(--mono);
+        }
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .stat-value.blue   { color: var(--blue); }
+        .stat-value.red    { color: var(--red); }
+        .stat-value.green  { color: var(--green); }
+        .stat-value.yellow { color: var(--yellow); }
+        .stat-value.purple { color: var(--purple); }
+
+        /* ── Section panels ── */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-title {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--blue);
+            letter-spacing: 1px;
             text-transform: uppercase;
         }
-        .status-blocked { background: rgba(248, 81, 73, 0.2); border: 1px solid var(--neon-red); color: var(--neon-red); }
-        .status-active { background: rgba(63, 185, 80, 0.2); border: 1px solid var(--neon-green); color: var(--neon-green); }
 
-        hr { border-color: #30363d; }
+        .panel-badge {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            background: rgba(88,166,255,0.1);
+            border: 1px solid rgba(88,166,255,0.3);
+            color: var(--blue);
+        }
+
+        /* ── Tables ── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .data-table thead th {
+            padding: 10px 16px;
+            text-align: left;
+            font-family: var(--mono);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            background: var(--surface2);
+        }
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .15s;
+        }
+        .data-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+        .data-table tbody tr:last-child { border-bottom: none; }
+        .data-table td { padding: 10px 16px; }
+
+        /* ── Badges & Pills ── */
+        .pill {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 3px 9px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            display: inline-block;
+        }
+        .pill-blocked      { background: rgba(248,81,73,.15);  border: 1px solid rgba(248,81,73,.4);  color: var(--red); }
+        .pill-active       { background: rgba(63,185,80,.15);  border: 1px solid rgba(63,185,80,.4);  color: var(--green); }
+        .pill-rolled-back  { background: rgba(227,179,65,.15); border: 1px solid rgba(227,179,65,.4); color: var(--yellow); }
+        .pill-high         { background: rgba(248,81,73,.15);  border: 1px solid rgba(248,81,73,.4);  color: var(--red); }
+        .pill-medium       { background: rgba(227,179,65,.15); border: 1px solid rgba(227,179,65,.4); color: var(--yellow); }
+        .pill-info         { background: rgba(88,166,255,.15); border: 1px solid rgba(88,166,255,.4); color: var(--blue); }
+
+        .source-tag {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            background: rgba(88,166,255,.08);
+            border: 1px solid rgba(88,166,255,.2);
+            color: var(--muted);
+        }
+
+        /* ── Score Bar ── */
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .score-track {
+            flex: 1;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            max-width: 80px;
+        }
+        .score-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width .3s;
+        }
+        .score-num {
+            font-family: var(--mono);
+            font-size: 12px;
+            min-width: 28px;
+        }
+
+        /* ── Rollback Button ── */
+        .btn-rollback {
+            font-family: var(--mono);
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 3px;
+            border: 1px solid rgba(248,81,73,.5);
+            background: rgba(248,81,73,.1);
+            color: var(--red);
+            cursor: pointer;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            transition: all .2s;
+        }
+        .btn-rollback:hover:not(:disabled) {
+            background: rgba(248,81,73,.25);
+            border-color: var(--red);
+        }
+        .btn-rollback:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+        .btn-rollback.loading { opacity: .6; }
+
+        /* ── Two column grid ── */
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* ── Alert items ── */
+        .alert-item {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+        .alert-item:last-child { border-bottom: none; }
+        .alert-icon {
+            font-size: 18px;
+            line-height: 1;
+            margin-top: 2px;
+        }
+        .alert-body { flex: 1; }
+        .alert-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+        .alert-meta {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+        .alert-item.unread { background: rgba(88,166,255,.04); }
+        .alert-item.unread .alert-title { color: var(--blue); }
+
+        /* ── Audit log ── */
+        .audit-item {
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            font-size: 11px;
+            display: grid;
+            grid-template-columns: 80px 90px 130px 1fr;
+            gap: 12px;
+            align-items: center;
+        }
+        .audit-item:last-child { border-bottom: none; }
+        .audit-action { font-weight: bold; }
+        .audit-action.BLOCK    { color: var(--red); }
+        .audit-action.ROLLBACK { color: var(--yellow); }
+        .audit-action.SKIP     { color: var(--muted); }
+        .audit-action.ERROR    { color: var(--purple); }
+
+        /* ── Toast ── */
+        #toast {
+            position: fixed;
+            bottom: 28px; right: 28px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 20px;
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all .3s;
+            z-index: 9998;
+            max-width: 340px;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.success { border-color: var(--green); color: var(--green); }
+        #toast.error   { border-color: var(--red);   color: var(--red); }
+
+        /* ── Refresh button ── */
+        .btn-refresh {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 5px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-refresh:hover { border-color: var(--blue); color: var(--blue); }
+
+        /* ── IP address styling ── */
+        .ip-addr {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+        }
+
+        /* ── Tabs ── */
+        .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+        .tab {
+            font-family: var(--mono);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all .2s;
+        }
+        .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        @media (max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .two-col    { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-            <h1 class="fw-bold">🛡️ Threat Intelligence Platform</h1>
-            <p class="text-muted">Proactive Defense & Dynamic Policy Enforcement</p>
+<!-- Header -->
+<header class="header">
+    <div class="logo">TIP<span>://</span>THREATINTEL &nbsp;|&nbsp; v3.0</div>
+    <div class="header-right">
+        <span><span class="status-dot"></span>DAEMON ACTIVE</span>
+        <span id="last-updated">{{ stats.total }} indicators loaded</span>
+        <button class="btn-refresh" onclick="refreshStats()">⟳ REFRESH</button>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card blue">
+            <div class="stat-label">Total Indicators</div>
+            <div class="stat-value blue" id="stat-total">{{ stats.total }}</div>
         </div>
-        <div class="text-end">
-            <span class="badge bg-dark border border-secondary p-2">System Status: <span class="text-neon-green">Live</span></span>
+        <div class="stat-card red">
+            <div class="stat-label">Active Blocks</div>
+            <div class="stat-value red" id="stat-blocked">{{ stats.blocked }}</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">High Risk (≥8)</div>
+            <div class="stat-value green" id="stat-high">{{ stats.high_risk }}</div>
+        </div>
+        <div class="stat-card yellow">
+            <div class="stat-label">Rolled Back</div>
+            <div class="stat-value yellow" id="stat-rolled">{{ stats.rolled_back }}</div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-label">Unread Alerts</div>
+            <div class="stat-value purple" id="stat-alerts">{{ stats.unread_alerts }}</div>
         </div>
     </div>
 
-    <div class="row g-4 mb-5">
-        <div class="col-md-4">
-            <div class="glass-card text-center">
-                <h6 class="text-uppercase text-muted small fw-bold">Total Indicators</h6>
-                <div class="stat-value text-neon-blue">{{ stats.total }}</div>
-            </div>
+    <!-- Threat Table -->
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">▶ LIVE THREAT INVENTORY</span>
+            <span class="panel-badge">TOP 100 BY RISK SCORE</span>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card text-center">
-                <h6 class="text-uppercase text-muted small fw-bold">Active Blocks (Firewall)</h6>
-                <div class="stat-value text-neon-red">{{ stats.blocked }}</div>
-            </div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('all')">All</div>
+            <div class="tab" onclick="switchTab('blocked')">Blocked</div>
+            <div class="tab" onclick="switchTab('active')">Active</div>
+            <div class="tab" onclick="switchTab('rolled')">Rolled Back</div>
         </div>
-        <div class="col-md-4">
-            <div class="glass-card text-center">
-                <h6 class="text-uppercase text-muted small fw-bold">High Risk Threats</h6>
-                <div class="stat-value text-neon-green">{{ stats.high_risk }}</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="glass-card">
-        <h4 class="mb-4">Live Threat Inventory</h4>
-        <div class="table-responsive">
-            <table class="table align-middle">
+        <div style="overflow-x:auto;">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Indicator (IP)</th>
+                        <th>IP Address</th>
                         <th>Source</th>
                         <th>Risk Score</th>
-                        <th>Last Detected</th>
-                        <th>Action Status</th>
+                        <th>Status</th>
+                        <th>Rule ID</th>
+                        <th>Last Seen</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
-                <tbody>
-                    {% for threat in threats %}
-                    <tr>
-                        <td class="fw-mono"><code>{{ threat.indicator }}</code></td>
-                        <td><span class="badge badge-source">{{ threat.source or 'OSINT' }}</span></td>
-                        <td>
-                            <div class="progress" style="height: 8px; width: 100px; background: #30363d;">
-                                <div class="progress-bar {% if threat.risk_score > 7 %}bg-danger{% else %}bg-warning{% endif %}" 
-                                     role="progressbar" 
-                                     style="width: {{ threat.risk_score * 10 }}%"></div>
+                <tbody id="threat-tbody">
+                {% for t in threats %}
+                <tr class="threat-row" data-status="{{ t.status }}">
+                    <td><span class="ip-addr">{{ t.indicator }}</span></td>
+                    <td><span class="source-tag">{{ t.source }}</span></td>
+                    <td>
+                        <div class="score-bar">
+                            <div class="score-track">
+                                <div class="score-fill"
+                                     style="width:{{ [t.risk_score * 10, 100]|min }}%;
+                                            background:{% if t.risk_score >= 8 %}var(--red){% elif t.risk_score >= 5 %}var(--yellow){% else %}var(--green){% endif %}">
+                                </div>
                             </div>
-                            <small class="text-muted">{{ threat.risk_score }}/10</small>
-                        </td>
-                        <td class="small text-muted">{{ threat.last_seen.strftime('%b %d, %H:%M:%S') }}</td>
-                        <td>
-                            <span class="status-pill status-{{ threat.status }}">
-                                {{ threat.status }}
+                            <span class="score-num"
+                                  style="color:{% if t.risk_score >= 8 %}var(--red){% elif t.risk_score >= 5 %}var(--yellow){% else %}var(--green){% endif %}">
+                                {{ t.risk_score }}
                             </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if t.status == 'blocked' %}
+                            <span class="pill pill-blocked">Blocked</span>
+                        {% elif t.status == 'rolled_back' %}
+                            <span class="pill pill-rolled-back">Rolled Back</span>
+                        {% else %}
+                            <span class="pill pill-active">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">
+                            {{ t.rule_id if t.rule_id else '—' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-family:var(--mono);font-size:11px;color:var(--muted);">
+                            {{ t.last_seen if t.last_seen else '—' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if t.status == 'blocked' %}
+                        <button class="btn-rollback"
+                                onclick="rollbackIP('{{ t.indicator }}', this)"
+                                data-ip="{{ t.indicator }}">
+                            ↩ UNBLOCK
+                        </button>
+                        {% else %}
+                            <span style="color:var(--muted);font-family:var(--mono);font-size:11px;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
-</div>
 
+    <!-- Alerts + Audit Log (two columns) -->
+    <div class="two-col">
+
+        <!-- Alerts Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">🔔 SECURITY ALERTS</span>
+                <span class="panel-badge" id="alert-count">{{ stats.unread_alerts }} UNREAD</span>
+            </div>
+            <div id="alerts-list">
+            {% if alerts %}
+                {% for alert in alerts %}
+                <div class="alert-item {{ 'unread' if not alert.read else '' }}">
+                    <div class="alert-icon">
+                        {% if alert.alert_type == 'BLOCK_TRIGGERED' %}⛔
+                        {% elif alert.alert_type == 'ROLLBACK_PERFORMED' %}↩
+                        {% else %}⚠️{% endif %}
+                    </div>
+                    <div class="alert-body">
+                        <div class="alert-title">
+                            {{ alert.alert_type | replace('_', ' ') }} — {{ alert.ip }}
+                        </div>
+                        <div class="alert-meta">
+                            <span class="pill pill-{{ alert.severity | lower }}">{{ alert.severity }}</span>
+                            &nbsp; {{ alert.timestamp }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding:32px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">
+                    NO ALERTS — SYSTEM NOMINAL
+                </div>
+            {% endif %}
+            </div>
+        </div>
+
+        <!-- Audit Log Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">📋 ENFORCEMENT AUDIT LOG</span>
+                <span class="panel-badge">LAST 20 ACTIONS</span>
+            </div>
+            <div style="overflow-x:auto;">
+            {% if audit_logs %}
+                {% for log in audit_logs %}
+                <div class="audit-item">
+                    <span class="audit-action {{ log.action }}">{{ log.action }}</span>
+                    <span class="ip-addr">{{ log.ip }}</span>
+                    <span style="color:var(--muted);">{{ log.timestamp }}</span>
+                    <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        {{ log.reason }}
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="padding:32px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;">
+                    NO AUDIT ENTRIES YET
+                </div>
+            {% endif %}
+            </div>
+        </div>
+
+    </div><!-- end two-col -->
+
+</main>
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<script>
+// ── Tab Filter ──────────────────────────────
+function switchTab(filter) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.querySelectorAll('.threat-row').forEach(row => {
+        const status = row.dataset.status;
+        if (filter === 'all') {
+            row.style.display = '';
+        } else if (filter === 'blocked') {
+            row.style.display = status === 'blocked' ? '' : 'none';
+        } else if (filter === 'active') {
+            row.style.display = status === 'active' ? '' : 'none';
+        } else if (filter === 'rolled') {
+            row.style.display = status === 'rolled_back' ? '' : 'none';
+        }
+    });
+}
+
+// ── Rollback ────────────────────────────────
+async function rollbackIP(ip, btn) {
+    if (!confirm(`Roll back firewall block for ${ip}?\nThis will remove the iptables DROP rule.`)) return;
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = '...';
+
+    try {
+        const res  = await fetch(`/api/rollback/${ip}`, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast('success', `✓ Rolled back: ${ip}`);
+            // Update the row visually
+            const row  = btn.closest('tr');
+            row.querySelector('.pill').outerHTML = '<span class="pill pill-rolled-back">Rolled Back</span>';
+            btn.outerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:11px;">✓ UNBLOCKED</span>';
+            row.dataset.status = 'rolled_back';
+            refreshStats();
+        } else {
+            showToast('error', `✗ ${data.message}`);
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            btn.textContent = '↩ UNBLOCK';
+        }
+    } catch (e) {
+        showToast('error', `✗ Network error: ${e}`);
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        btn.textContent = '↩ UNBLOCK';
+    }
+}
+
+// ── Stats Refresh ───────────────────────────
+async function refreshStats() {
+    try {
+        const res  = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('stat-total').textContent  = data.total;
+        document.getElementById('stat-blocked').textContent = data.blocked;
+        document.getElementById('stat-high').textContent   = data.high_risk;
+        document.getElementById('stat-rolled').textContent = data.rolled_back;
+        document.getElementById('stat-alerts').textContent = data.unread_alerts;
+        document.getElementById('last-updated').textContent = `Updated: ${data.last_updated}`;
+        document.getElementById('alert-count').textContent  = `${data.unread_alerts} UNREAD`;
+    } catch (e) {
+        console.warn('Stats refresh failed:', e);
+    }
+}
+
+// Auto-refresh every 60 seconds
+setInterval(refreshStats, 60000);
+
+// ── Toast ────────────────────────────────────
+function showToast(type, message) {
+    const toast = document.getElementById('toast');
+    toast.className = `show ${type}`;
+    toast.textContent = message;
+    setTimeout(() => { toast.className = ''; }, 4000);
+}
+</script>
 </body>
 </html>
