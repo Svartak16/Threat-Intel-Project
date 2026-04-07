@@ -1,11 +1,82 @@
 version: '3.8'
+
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: threat_db
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: threat_intel
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/threat_intel --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ── Elasticsearch (Week 3 / 4) ────────────────
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    container_name: tip_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false        # Disabled for lab use — enable in production
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m     # Limit memory for local dev
+      - cluster.name=tip-cluster
+      - node.name=tip-node-1
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost:9200/_cluster/health?wait_for_status=yellow || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ── Kibana (Week 4 Dashboard) ─────────────────
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.0
+    container_name: tip_kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+      ELASTICSEARCH_SERVICEACCOUNTTOKEN: ""
+      xpack.security.enabled: "false"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost:5601/api/status || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
 volumes:
   mongo_data:
+    driver: local
+  es_data:
+    driver: local
+
+# ─────────────────────────────────────────────────────────────
+# AFTER STARTING:
+#   MongoDB    → localhost:27017
+#   Elasticsearch → http://localhost:9200
+#   Kibana     → http://localhost:5601
+#
+# In Kibana:
+#   1. Go to Stack Management → Index Patterns
+#   2. Create pattern: tip-indicators-*
+#   3. Time field: last_seen
+#   4. Also create: tip-alerts, tip-audit-logs
+# ─────────────────────────────────────────────────────────────
+
