@@ -2,6 +2,9 @@ import os
 import pymongo
 import requests
 import subprocess
+import time
+import uuid
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -22,8 +25,10 @@ def check_virustotal(ip):
 
 def block_in_kali(ip):
     try:
-        subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"], check=True)
-        print(f"[FIREWALL] Blocked malicious IP: {ip}")
+        check_cmd = ["sudo", "iptables", "-C", "INPUT", "-s", ip, "-j", "DROP"]
+        if subprocess.run(check_cmd, capture_output=True).returncode != 0:
+            subprocess.run(["sudo", "iptables", "-A", "INPUT", "-s", ip, "-j", "DROP"], check=True)
+            print(f"[FIREWALL] Blocked malicious IP: {ip}")
         return True
     except:
         return False
@@ -38,12 +43,30 @@ def run_enforcement():
         # Double-check with VirusTotal
         if check_virustotal(ip):
             if block_in_kali(ip):
-                db.indicators.update_one({"_id": t["_id"]}, {"$set": {"status": "blocked"}})
+                 new_rule_id = f"RULE-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6]}"
+                
+                 db.indicators.update_one(
+                    {"_id": t["_id"]}, 
+                    {"$set": {
+                        "status": "blocked",
+                        "rule_id": new_rule_id,
+                        "blocked_at": datetime.utcnow(),
+                        "block_reason": "auto_enforcer",
+                        "rollback_status": "active"
+                    }}
+                )
+            print(f"[DB] Updated Audit Trail for {ip}")
         else:
-            print(f"[-] {ip} failed VirusTotal verification. Skipping block.")
+            print(f"[-] {ip} failed VT verification. Skipping.")
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
         print("Run with sudo!")
     else:
-        run_enforcement()
+        print("--- Enforcer Daemon Active ---")
+        try:
+            while True:
+                run_enforcement()
+                time.sleep(300) # Runs every 5 minutes
+        except KeyboardInterrupt:
+            print("\n[!] Daemon stopped by user.")
