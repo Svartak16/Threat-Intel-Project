@@ -12,6 +12,7 @@ Containerized Database: Uses Docker & MongoDB for scalable, high-performance thr
 
 Security Analytics: Categorizes threats by type (Botnet, Malware, Phishing) and assigns risk levels.
 
+
 🛠️ Tech Stack
 Language: Python 3.10+
 
@@ -23,6 +24,7 @@ Security: Linux iptables (Packet Filtering)
 
 Environment: Kali Linux / Ubuntu
 
+
 📋 Prerequisites
 Before running, ensure you have the following installed:
 
@@ -31,6 +33,7 @@ Docker & Docker-Compose
 Python 3.10+
 
 sudo privileges (required for Firewall modification)
+
 
 ⚙️ Installation & Setup
 1. Clone the Repository
@@ -45,7 +48,7 @@ pip install -r requirements.txt
 3. Launch Database
 Bash
 sudo docker-compose up -d
-🏃 Execution Flow
+Execution Flow
 Step 1: Collect Threat Data
 Run the aggregator to pull the latest malicious IPs into your database:
 
@@ -61,8 +64,7 @@ Bash
 python3 app.py
 View the results at: http://localhost:5000
 
-🔍 Verification
+  Verification
 To see the active blocks in your Linux Kernel, run:
-
 Bash
 sudo iptables -L INPUT -n --line-numbers
